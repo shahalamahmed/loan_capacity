@@ -6,26 +6,32 @@ import '../widgets/transaction_card.dart';
 import '../utils/pdf_generator.dart';
 
 class ReportScreen extends StatelessWidget {
-  const ReportScreen({Key? key}) : super(key: key);
+  const ReportScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('বিস্তারিত রিপোর্ট'),
-        backgroundColor: Colors.blue[700],
+
         actions: [
           IconButton(
             onPressed: () async {
-              final provider = context.read<TransactionProvider>();
-              await PDFGenerator.generatePDF(
-                context: context,
-                transactions: provider.transactions,
-                totalIncome: provider.totalIncome,
-                totalExpense: provider.totalExpense,
-                netAmount: provider.netAmount,
-                loanData: provider.loanData,
-              );
+              try {
+                final provider = context.read<TransactionProvider>();
+                await PDFGenerator.generatePDF(
+                  context: context,
+                  transactions: provider.transactions,
+                  totalIncome: provider.totalIncome,
+                  totalExpense: provider.totalExpense,
+                  netAmount: provider.netAmount,
+                  loanData: provider.loanData,
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('PDF তৈরি করতে সমস্যা: $e')),
+                );
+              }
             },
             icon: const Icon(Icons.download),
             tooltip: 'PDF ডাউনলোড',
@@ -63,10 +69,17 @@ class ReportScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 15),
-                _buildSummaryCard(
-                  'নিট পরিমাণ',
-                  provider.netAmount,
-                  Colors.blue,
+                Center(
+                  child: Container(
+                    width:
+                        MediaQuery.of(context).size.width *
+                        0.6, // Make it 60% of screen width
+                    child: _buildSummaryCard(
+                      'নিট পরিমাণ',
+                      provider.netAmount,
+                      Colors.blue,
+                    ),
+                  ),
                 ),
 
                 // Loan Info
@@ -120,7 +133,7 @@ class ReportScreen extends StatelessWidget {
                   _buildEmptyState('কোনো আয় নেই')
                 else
                   ...incomeTransactions.map(
-                        (t) => TransactionCard(transaction: t, showDelete: false),
+                    (t) => TransactionCard(transaction: t, showDelete: false),
                   ),
 
                 const SizedBox(height: 30),
@@ -136,7 +149,7 @@ class ReportScreen extends StatelessWidget {
                   _buildEmptyState('কোনো খরচ নেই')
                 else
                   ...expenseTransactions.map(
-                        (t) => TransactionCard(transaction: t, showDelete: false),
+                    (t) => TransactionCard(transaction: t, showDelete: false),
                   ),
               ],
             ),
@@ -148,13 +161,16 @@ class ReportScreen extends StatelessWidget {
 
   Widget _buildSummaryCard(String title, double amount, Color color) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.symmetric(
+        vertical: 12,
+        horizontal: 15,
+      ), // Compact padding
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withOpacity(0.15), // Softer shadow
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
@@ -167,12 +183,12 @@ class ReportScreen extends StatelessWidget {
             title,
             style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6), // Compact spacing
           Text(
             '৳${NumberFormat('#,##,###').format(amount)}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18, // Slightly smaller to match other cards
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -202,10 +218,7 @@ class ReportScreen extends StatelessWidget {
             ),
             child: Text(
               '$count টি',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
             ),
           ),
       ],
@@ -233,10 +246,7 @@ class ReportScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
-        child: Text(
-          message,
-          style: TextStyle(color: Colors.grey[600]),
-        ),
+        child: Text(message, style: TextStyle(color: Colors.grey[600])),
       ),
     );
   }

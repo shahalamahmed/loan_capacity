@@ -36,12 +36,11 @@ class HomeScreen extends StatelessWidget {
 
     if (confirm == true) {
       await provider.resetAll();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('সব ডাটা মুছে ফেলা হয়েছে')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('সব ডাটা মুছে ফেলা হয়েছে')));
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +62,7 @@ class HomeScreen extends StatelessWidget {
             builder: (context, provider, child) {
               if (provider.isLoading) {
                 return const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF0F172A),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFF0F172A)),
                 );
               }
 
@@ -94,7 +91,9 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                DateFormat('dd MMMM yyyy').format(DateTime.now()),
+                                DateFormat(
+                                  'dd MMMM yyyy',
+                                ).format(DateTime.now()),
                                 style: const TextStyle(
                                   color: Color(0xFF64748B), // Slate 500
                                   fontSize: 14,
@@ -146,7 +145,8 @@ class HomeScreen extends StatelessWidget {
                         amount: provider.netAmount,
                         color: provider.netAmount >= 0
                             ? const Color(0xFF2563EB) // Blue 600
-                            : const Color(0xFFEA580C), // Orange 600
+                            : const Color(0xFFEA580C),
+                        // Orange 600
                         icon: Icons.account_balance_wallet,
                         isLarge: true,
                       ),
@@ -164,7 +164,8 @@ class HomeScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const IncomeFormScreen(),
+                                    builder: (context) =>
+                                        const IncomeFormScreen(),
                                   ),
                                 );
                               },
@@ -180,7 +181,8 @@ class HomeScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ExpenseFormScreen(),
+                                    builder: (context) =>
+                                        const ExpenseFormScreen(),
                                   ),
                                 );
                               },
@@ -199,7 +201,8 @@ class HomeScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LoanCalculationScreen(),
+                              builder: (context) =>
+                                  const LoanCalculationScreen(),
                             ),
                           );
                         },
@@ -229,19 +232,23 @@ class HomeScreen extends StatelessWidget {
                                 );
                               },
                               style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF2563EB), // Blue 600
+                                foregroundColor: const Color(
+                                  0xFF2563EB,
+                                ), // Blue 600
                               ),
                               child: const Text('সব দেখুন'),
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
-                        ...provider.transactions.take(5).map(
+                        ...provider.transactions
+                            .take(5)
+                            .map(
                               (t) => TransactionCard(
-                            transaction: t,
-                            showDelete: true,
-                          ),
-                        ),
+                                transaction: t,
+                                showDelete: true,
+                              ),
+                            ),
                       ] else ...[
                         const SizedBox(height: 50),
                         Center(
@@ -292,12 +299,11 @@ class HomeScreen extends StatelessWidget {
           'রিপোর্ট',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF264653), // Dark teal
+        backgroundColor: const Color(0xFF264653),
+        // Dark teal
         foregroundColor: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
