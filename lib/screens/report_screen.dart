@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:loan_capacity/utils/bangla_pdf_print.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/transaction_card.dart';
-import '../utils/pdf_generator.dart';
-
 class ReportScreen extends StatelessWidget {
   const ReportScreen({super.key});
 
@@ -13,20 +12,20 @@ class ReportScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('বিস্তারিত রিপোর্ট'),
-
         actions: [
           IconButton(
             onPressed: () async {
               try {
                 final provider = context.read<TransactionProvider>();
-                await PDFGenerator.generatePDF(
-                  context: context,
-                  transactions: provider.transactions,
-                  totalIncome: provider.totalIncome,
-                  totalExpense: provider.totalExpense,
-                  netAmount: provider.netAmount,
-                  loanData: provider.loanData,
+
+                await generateBanglaPDF(
+                  provider.totalIncome,
+                  provider.totalExpense,
+                  provider.netAmount,
+                  provider.loanData,
+                  provider.transactions,
                 );
+
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('PDF তৈরি করতে সমস্যা: $e')),
@@ -38,6 +37,7 @@ class ReportScreen extends StatelessWidget {
           ),
         ],
       ),
+
       body: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
           final incomeTransactions = provider.incomeTransactions;
@@ -70,10 +70,8 @@ class ReportScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 Center(
-                  child: Container(
-                    width:
-                        MediaQuery.of(context).size.width *
-                        0.6, // Make it 60% of screen width
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
                     child: _buildSummaryCard(
                       'নিট পরিমাণ',
                       provider.netAmount,
@@ -102,8 +100,18 @@ class ReportScreen extends StatelessWidget {
                         ),
                         const Divider(),
                         _buildInfoRow(
-                          'মাসিক পেমেন্ট',
-                          '৳${NumberFormat('#,##,###').format(provider.loanData!.monthlyPayment)}',
+                          'প্রতি কিস্তির টাকা',
+                          '৳${NumberFormat('#,##,###').format(provider.loanData!.installmentAmount)}',
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          'বছরে কিস্তি সংখ্যা',
+                          '${(provider.loanData!.installmentCount / (provider.loanData!.termInMonths / 12)).round()} টি',
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          'বার্ষিক পরিশোধ',
+                          '৳${NumberFormat('#,##,###').format(provider.loanData!.yearlyCapacity)}',
                         ),
                         const Divider(),
                         _buildInfoRow(
@@ -113,7 +121,7 @@ class ReportScreen extends StatelessWidget {
                         const Divider(),
                         _buildInfoRow(
                           'মেয়াদ',
-                          '${provider.loanData!.loanTerm} মাস',
+                          '${provider.loanData!.termInMonths} মাস',
                         ),
                       ],
                     ),
@@ -161,16 +169,13 @@ class ReportScreen extends StatelessWidget {
 
   Widget _buildSummaryCard(String title, double amount, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 12,
-        horizontal: 15,
-      ), // Compact padding
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15), // Softer shadow
+            color: color.withOpacity(0.15),
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
@@ -183,12 +188,12 @@ class ReportScreen extends StatelessWidget {
             title,
             style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
-          const SizedBox(height: 6), // Compact spacing
+          const SizedBox(height: 6),
           Text(
             '৳${NumberFormat('#,##,###').format(amount)}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 18, // Slightly smaller to match other cards
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),

@@ -1,48 +1,77 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction.dart';
 import '../models/LoanData.dart';
+import 'dart:convert';
 
 class LocalStorageService {
   static const String _transactionsKey = 'transactions';
-  static const String _loanDataKey = 'loanData';
-
-  Future<void> saveTransactions(List<Transaction> transactions) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = transactions.map((t) => t.toJson()).toList();
-    await prefs.setString(_transactionsKey, jsonEncode(jsonList));
-  }
+  static const String _loanDataKey = 'loan_data';
 
   Future<List<Transaction>> getTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_transactionsKey);
-    if (jsonString == null) return [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_transactionsKey);
 
-    final jsonList = jsonDecode(jsonString) as List;
-    return jsonList.map((json) => Transaction.fromJson(json)).toList();
+      if (jsonString == null || jsonString.isEmpty) {
+        return [];
+      }
+
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+      return jsonList.map((json) => Transaction.fromJson(json)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
-  Future<void> saveLoanData(LoanData data) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_loanDataKey, jsonEncode(data.toJson()));
+  Future<void> saveTransactions(List<Transaction> transactions) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = transactions.map((t) => t.toJson()).toList();
+      final jsonString = jsonEncode(jsonList);
+      await prefs.setString(_transactionsKey, jsonString);
+    } catch (e) {
+      // Handle error
+    }
   }
 
   Future<LoanData?> getLoanData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_loanDataKey);
-    if (jsonString == null) return null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_loanDataKey);
 
-    return LoanData.fromJson(jsonDecode(jsonString));
+      if (jsonString == null || jsonString.isEmpty) {
+        return null;
+      }
+
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      return LoanData.fromJson(json);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> saveLoanData(LoanData? loanData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      if (loanData == null) {
+        await prefs.remove(_loanDataKey);
+      } else {
+        final jsonString = jsonEncode(loanData.toJson());
+        await prefs.setString(_loanDataKey, jsonString);
+      }
+    } catch (e) {
+      // Handle error
+    }
   }
 
   Future<void> clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
-
-  Future<void> deleteTransaction(String id) async {
-    final transactions = await getTransactions();
-    transactions.removeWhere((t) => t.id == id);
-    await saveTransactions(transactions);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_transactionsKey);
+      await prefs.remove(_loanDataKey);
+    } catch (e) {
+      // Handle error
+    }
   }
 }
