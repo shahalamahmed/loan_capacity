@@ -58,61 +58,47 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔥 UPDATED CALCULATION WITH INSTALLMENT COUNT
   Future<void> calculateLoan({
-    required double interestRate,       // বার্ষিক সুদ (%)
-    required int termInMonths,          // ঋণের মেয়াদ (মাসে)
-    required int installmentCount,      // মোট কিস্তি সংখ্যা (n)
-    required double monthlyNetIncome,   // মাসিক নীট আয়
-    required double cashFlowPercent,    // Cash flow % (40 বা 50)
+    required double interestRate,
+    required double term,
+    required TermUnit termUnit,
+    required int installmentCount,
+    required double monthlyNetIncome,
+    required double cashFlowPercent,
   }) async {
     try {
-      // মাসিক পরিশোধ সক্ষমতা
       final monthlyCapacity = monthlyNetIncome * (cashFlowPercent / 100);
 
-      // বার্ষিক পরিশোধ সক্ষমতা (E)
-      final yearlyCapacity = monthlyCapacity * 12;
+      final termInMonths = _convertToMonths(term, termUnit);
 
-      // মেয়াদ বছরে (N)
       final termInYears = termInMonths / 12;
 
-      // বার্ষিক সুদের হার (r)
+      final yearlyCapacity = monthlyCapacity * 12;
+
+      final proportionedCapacity = yearlyCapacity * termInYears;
+
       final annualInterestRate = interestRate / 100;
 
-      if (yearlyCapacity <= 0) {
-        throw Exception('ঋণ পরিশোধের সক্ষমতা শূন্যের চেয়ে বড় হতে হবে');
-      }
+      final loanAmount = proportionedCapacity / pow(1 + annualInterestRate, termInYears);
 
-      if (termInYears <= 0) {
-        throw Exception('ঋণের মেয়াদ শূন্যের চেয়ে বড় হতে হবে');
-      }
+      final totalRepayment = proportionedCapacity;
 
-      if (installmentCount <= 0) {
-        throw Exception('কিস্তি সংখ্যা শূন্যের চেয়ে বড় হতে হবে');
-      }
-
-      if (installmentCount > termInMonths) {
-        throw Exception('কিস্তি সংখ্যা ঋণের মেয়াদের চেয়ে বেশি হতে পারে না');
-      }
-
-      // 🔥 NGO FORMULA: A = E / (1 + r)^N
-      final proportionedYearlyCapacity = yearlyCapacity * termInYears;
-      final loanAmount = proportionedYearlyCapacity / pow(1 + annualInterestRate, termInYears);
-
-      // মোট পরিশোধ (পুরো মেয়াদে)
-      final totalRepayment = yearlyCapacity * termInYears;
-
-      // প্রতি কিস্তির পরিমাণ = মোট পরিশোধ / কিস্তি সংখ্যা
       final installmentAmount = totalRepayment / installmentCount;
+
+      final totalDays = _convertToDays(term, termUnit);
+
+      final daysBetweenInstallments = totalDays / installmentCount;
 
       final loanData = LoanData(
         interestRate: interestRate,
         termInMonths: termInMonths,
+        termUnit: termUnit,
         installmentCount: installmentCount,
         yearlyCapacity: yearlyCapacity,
         loanAmount: loanAmount,
         installmentAmount: installmentAmount,
         totalRepayment: totalRepayment,
+        daysBetweenInstallments: daysBetweenInstallments.round(),
         calculatedDate: DateTime.now(),
       );
 
@@ -122,6 +108,28 @@ class TransactionProvider with ChangeNotifier {
 
     } catch (e) {
       rethrow;
+    }
+  }
+
+  double _convertToMonths(double term, TermUnit unit) {
+    switch (unit) {
+      case TermUnit.days:
+        return term / 30;
+      case TermUnit.months:
+        return term;
+      case TermUnit.years:
+        return term * 12;
+    }
+  }
+
+  double _convertToDays(double term, TermUnit unit) {
+    switch (unit) {
+      case TermUnit.days:
+        return term;
+      case TermUnit.months:
+        return term * 30;
+      case TermUnit.years:
+        return term * 365;
     }
   }
 

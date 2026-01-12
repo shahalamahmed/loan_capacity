@@ -48,7 +48,6 @@ class ReportScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Summary Cards
                 Row(
                   children: [
                     Expanded(
@@ -80,7 +79,7 @@ class ReportScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Loan Info
+
                 if (provider.loanData != null) ...[
                   const SizedBox(height: 30),
                   _buildSectionHeader('ঋণ তথ্য', Colors.blue, null),
@@ -130,7 +129,6 @@ class ReportScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // Income Section
                 _buildSectionHeader(
                   'আয়ের তালিকা',
                   Colors.green,
@@ -146,7 +144,6 @@ class ReportScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // Expense Section
                 _buildSectionHeader(
                   'খরচের তালিকা',
                   Colors.red,

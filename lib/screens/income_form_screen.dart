@@ -6,7 +6,7 @@ import '../widgets/dynamic_form.dart';
 import '../utils/constants.dart';
 
 class IncomeFormScreen extends StatefulWidget {
-  const IncomeFormScreen({Key? key}) : super(key: key);
+  const IncomeFormScreen({super.key});
 
   @override
   State<IncomeFormScreen> createState() => _IncomeFormScreenState();
@@ -21,7 +21,6 @@ class _IncomeFormScreenState extends State<IncomeFormScreen> {
 
     setState(() => _isLoading = true);
 
-    // Create transactions for each filled field
     for (var entry in _collectedData.entries) {
       final transaction = Transaction(
         id: '${DateTime.now().millisecondsSinceEpoch}_${entry.key}',
